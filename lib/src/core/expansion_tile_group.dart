@@ -3,15 +3,16 @@ import 'package:expansion_tile_group/src/core/utils.dart';
 import 'package:flutter/material.dart';
 
 class ExpansionTileGroup extends StatefulWidget {
-  const ExpansionTileGroup(
-      {Key? key,
-      required this.children,
-      this.toggleType = ToggleType.none,
-      this.onItemChanged,
-      this.spaceBetweenItem = 0.0})
-      : assert(spaceBetweenItem >= 0.0,
-            '[Error] ExpansionTileGroup: The spaceBetweenItem must be >= 0'),
-        super(key: key);
+  const ExpansionTileGroup({
+    super.key,
+    required this.children,
+    this.toggleType = ToggleType.none,
+    this.onItemChanged,
+    this.spaceBetweenItem = 0.0,
+  }) : assert(
+          spaceBetweenItem >= 0.0,
+          '[Error] ExpansionTileGroup: The spaceBetweenItem must be >= 0',
+        );
   final List<ExpansionTileItem> children;
   final ToggleType toggleType;
   final Function(int, bool)? onItemChanged;
@@ -38,30 +39,27 @@ class _ExpansionTileGroupState extends State<ExpansionTileGroup> {
     if (isClear) {
       keysMap.clear();
     }
-    widget.children.forEachIndexed(
-      (index, e) {
-        final entry = MapEntry(index, e.expansionKey ?? GlobalKey());
-        keysMap[entry.key] = entry.value;
-      },
-    );
+    widget.children.forEachIndexed((index, e) {
+      final entry = MapEntry(index, e.expansionKey ?? GlobalKey());
+      keysMap[entry.key] = entry.value;
+    });
   }
 
   void _modifyChildren({bool isClear = false}) {
     if (isClear) {
       modifiedChildren.clear();
     }
-    final modifies = widget.children.mapIndexed(
-      (index, e) {
-        return e.copyWith(
-            expansionKey: keysMap[index] ?? GlobalKey(),
-            onExpansionChanged: (isExpanded) {
-              if (!_isTransforming) {
-                _handleBehaviors(index, isExpanded, false);
-                widget.onItemChanged?.call(index, isExpanded);
-              }
-            });
-      },
-    ).toList();
+    final modifies = widget.children.mapIndexed((index, e) {
+      return e.copyWith(
+        expansionKey: keysMap[index] ?? GlobalKey(),
+        onExpansionChanged: (isExpanded) {
+          if (!_isTransforming) {
+            _handleBehaviors(index, isExpanded, false);
+            widget.onItemChanged?.call(index, isExpanded);
+          }
+        },
+      );
+    }).toList();
 
     modifiedChildren.addAll(modifies);
   }
@@ -76,9 +74,10 @@ class _ExpansionTileGroupState extends State<ExpansionTileGroup> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [...modifiedChildren].separatedBy(SizedBox(
-        height: widget.spaceBetweenItem,
-      )),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ...modifiedChildren,
+      ].separatedBy(SizedBox(height: widget.spaceBetweenItem)),
     );
   }
 
@@ -124,7 +123,10 @@ class _ExpansionTileGroupState extends State<ExpansionTileGroup> {
   }
 
   void _onExpandAlwaysCurrent(
-      int index, bool isExpanded, bool isDefaultExpand) {
+    int index,
+    bool isExpanded,
+    bool isDefaultExpand,
+  ) {
     _isTransforming = true;
     keysMap[index]?.currentState?.expand();
     for (int i = 0; i < keysMap.length; i++) {
